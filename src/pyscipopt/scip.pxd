@@ -172,6 +172,45 @@ cdef extern from "scip/scip.h":
         SCIP_EXPR_USER      = 69
         SCIP_EXPR_LAST      = 70
 
+    ctypedef enum SCIP_EVENTTYPE:
+        SCIP_EVENTTYPE_DISABLED         = 0x00000000u
+        SCIP_EVENTTYPE_VARADDED         = 0x00000001u
+        SCIP_EVENTTYPE_VARDELETED       = 0x00000002u
+        SCIP_EVENTTYPE_VARFIXED         = 0x00000004u
+        SCIP_EVENTTYPE_VARUNLOCKED      = 0x00000008u
+        SCIP_EVENTTYPE_OBJCHANGED       = 0x00000010u
+        SCIP_EVENTTYPE_GLBCHANGED       = 0x00000020u
+        SCIP_EVENTTYPE_GUBCHANGED       = 0x00000040u
+        SCIP_EVENTTYPE_LBTIGHTENED      = 0x00000080u
+        SCIP_EVENTTYPE_LBRELAXED        = 0x00000100u
+        SCIP_EVENTTYPE_UBTIGHTENED      = 0x00000200u
+        SCIP_EVENTTYPE_UBRELAXED        = 0x00000400u
+        SCIP_EVENTTYPE_GHOLEADDED       = 0x00000800u
+        SCIP_EVENTTYPE_GHOLEREMOVED     = 0x00001000u
+        SCIP_EVENTTYPE_LHOLEADDED       = 0x00002000u
+        SCIP_EVENTTYPE_LHOLEREMOVED     = 0x00004000u
+        SCIP_EVENTTYPE_IMPLADDED        = 0x00008000u
+        SCIP_EVENTTYPE_PRESOLVEROUND    = 0x00010000u
+        SCIP_EVENTTYPE_NODEFOCUSED      = 0x00020000u
+        SCIP_EVENTTYPE_NODEFEASIBLE     = 0x00040000u
+        SCIP_EVENTTYPE_NODEINFEASIBLE   = 0x00080000u
+        SCIP_EVENTTYPE_NODEBRANCHED     = 0x00100000u
+        SCIP_EVENTTYPE_FIRSTLPSOLVED    = 0x00200000u
+        SCIP_EVENTTYPE_LPSOLVED         = 0x00400000u
+        SCIP_EVENTTYPE_POORSOLFOUND     = 0x00800000u
+        SCIP_EVENTTYPE_BESTSOLFOUND     = 0x01000000u
+        SCIP_EVENTTYPE_ROWADDEDSEPA     = 0x02000000u
+        SCIP_EVENTTYPE_ROWDELETEDSEPA   = 0x04000000u
+        SCIP_EVENTTYPE_ROWADDEDLP       = 0x08000000u
+        SCIP_EVENTTYPE_ROWDELETEDLP     = 0x10000000u
+        SCIP_EVENTTYPE_ROWCOEFCHANGED   = 0x20000000u
+        SCIP_EVENTTYPE_ROWCONSTCHANGED  = 0x40000000u
+        SCIP_EVENTTYPE_ROWSIDECHANGED   = 0x80000000u
+        SCIP_EVENTTYPE_SYNC             = 0x100000000u
+
+        SCIP_EVENTTYPE_LPEVENT          = SCIP_EVENTTYPE_FIRSTLPSOLVED | SCIP_EVENTTYPE_LPSOLVED
+
+
     ctypedef bint SCIP_Bool
 
     ctypedef long long SCIP_Longint
@@ -274,6 +313,18 @@ cdef extern from "scip/scip.h":
     ctypedef struct SCIP_CONSDATA:
         pass
 
+    ctypedef struct SCIP_EVENT:
+        pass
+
+    ctypedef struct SCIP_EVENTDATA:
+        pass
+
+    ctypedef struct SCIP_EVENTHDLR:
+        pass
+
+    ctypedef struct SCIP_EVENTHDLRDATA:
+        pass
+
     ctypedef struct SCIP_DIVESET:
         pass
 
@@ -308,12 +359,52 @@ cdef extern from "scip/scip.h":
     SCIP_RETCODE SCIPcreate(SCIP** scip)
     SCIP_RETCODE SCIPfree(SCIP** scip)
     void SCIPsetMessagehdlrQuiet(SCIP* scip, SCIP_Bool quiet)
+    SCIP_Real SCIPversion()
     void SCIPprintVersion(SCIP* scip, FILE* outfile)
     SCIP_Real SCIPgetTotalTime(SCIP* scip)
     SCIP_Real SCIPgetSolvingTime(SCIP* scip)
     SCIP_Real SCIPgetReadingTime(SCIP* scip)
     SCIP_Real SCIPgetPresolvingTime(SCIP* scip)
     SCIP_STAGE SCIPgetStage(SCIP* scip)
+    const char* SCIPgetProbName(SCIP* scip)
+
+    # Event Methods
+    SCIP_RETCODE SCIPcatchEvent(SCIP* scip,
+                                SCIP_EVENTTYPE eventtype,
+                                SCIP_EVENTHDLR* eventhdlr,
+                                SCIP_EVENTDATA* eventdata,
+                                int* filterpos)
+    SCIP_RETCODE SCIPdropEvent(SCIP* scip,
+                               SCIP_EVENTTYPE eventtype,
+                               SCIP_EVENTHDLR* eventhdlr,
+                               SCIP_EVENTDATA* eventdata,
+                               int filterpos)
+    SCIP_RETCODE SCIPcatchVarEvent(SCIP* scip,
+                                   SCIP_VAR* var,
+                                   SCIP_EVENTTYPE eventtype,
+                                   SCIP_EVENTHDLR* eventhdlr,
+                                   SCIP_EVENTDATA* eventdata,
+                                   int* filterpos)
+    SCIP_RETCODE SCIPdropVarEvent(SCIP* scip,
+                                  SCIP_VAR* var,
+                                  SCIP_EVENTTYPE eventtype,
+                                  SCIP_EVENTHDLR* eventhdlr,
+                                  SCIP_EVENTDATA* eventdata,
+                                  int filterpos)
+    SCIP_RETCODE SCIPcatchRowEvent(SCIP* scip,
+                                   SCIP_ROW* row,
+                                   SCIP_EVENTTYPE eventtype,
+                                   SCIP_EVENTHDLR* eventhdlr,
+                                   SCIP_EVENTDATA* eventdata,
+                                   int* filterpos)
+    SCIP_RETCODE SCIPdropRowEvent(SCIP* scip,
+                                  SCIP_ROW* row,
+                                  SCIP_EVENTTYPE eventtype,
+                                  SCIP_EVENTHDLR* eventhdlr,
+                                  SCIP_EVENTDATA* eventdata,
+                                  int filterpos)
+    SCIP_EVENTHDLR* SCIPfindEventhdlr(SCIP* scip, const char* name)
+    SCIP_EVENTTYPE SCIPeventGetType(SCIP_EVENT* event)
 
     # Global Problem Methods
     SCIP_RETCODE SCIPcreateProbBasic(SCIP* scip, char* name)
@@ -325,6 +416,10 @@ cdef extern from "scip/scip.h":
     SCIP_RETCODE SCIPsetObjsense(SCIP* scip, SCIP_OBJSENSE objsense)
     SCIP_OBJSENSE SCIPgetObjsense(SCIP* scip)
     SCIP_RETCODE SCIPsetObjlimit(SCIP* scip, SCIP_Real objlimit)
+    SCIP_RETCODE SCIPaddObjoffset(SCIP* scip, SCIP_Real addval)
+    SCIP_RETCODE SCIPaddOrigObjoffset(SCIP* scip, SCIP_Real addval)
+    SCIP_Real SCIPgetOrigObjoffset(SCIP* scip)
+    SCIP_Real SCIPgetTransObjoffset(SCIP* scip)
     SCIP_RETCODE SCIPsetPresolving(SCIP* scip, SCIP_PARAMSETTING paramsetting, SCIP_Bool quiet)
     SCIP_RETCODE SCIPsetSeparating(SCIP* scip, SCIP_PARAMSETTING paramsetting, SCIP_Bool quiet)
     SCIP_RETCODE SCIPsetHeuristics(SCIP* scip, SCIP_PARAMSETTING paramsetting, SCIP_Bool quiet)
@@ -343,7 +438,6 @@ cdef extern from "scip/scip.h":
     SCIP_NODE* SCIPnodeGetParent(SCIP_NODE* node)
     SCIP_Longint SCIPnodeGetNumber(SCIP_NODE* node)
     int SCIPnodeGetDepth(SCIP_NODE* node)
-    int SCIPnodeGetNAddedConss(SCIP_NODE* node)
     SCIP_Real SCIPnodeGetLowerbound(SCIP_NODE* node)
     SCIP_Real SCIPnodeGetEstimate(SCIP_NODE* node)
     SCIP_NODETYPE SCIPnodeGetType(SCIP_NODE* node)
@@ -413,6 +507,10 @@ cdef extern from "scip/scip.h":
     SCIP_RETCODE SCIPdelCons(SCIP* scip, SCIP_CONS* cons)
     SCIP_VAR** SCIPgetVarsLinear(SCIP* scip, SCIP_CONS* cons)
     int SCIPgetNVarsLinear(SCIP* scip, SCIP_CONS* cons)
+    SCIP_RETCODE SCIPsetConsChecked(SCIP *scip, SCIP_CONS *cons, SCIP_Bool check)	
+    SCIP_RETCODE SCIPsetConsRemovable(SCIP *scip, SCIP_CONS *cons, SCIP_Bool removable)	
+    SCIP_RETCODE SCIPsetConsInitial(SCIP *scip, SCIP_CONS *cons, SCIP_Bool initial)	
+    SCIP_RETCODE SCIPsetConsEnforced(SCIP *scip, SCIP_CONS *cons, SCIP_Bool enforce)	
 
     # Primal Solution Methods
     SCIP_SOL** SCIPgetSols(SCIP* scip)
@@ -428,11 +526,14 @@ cdef extern from "scip/scip.h":
     SCIP_RETCODE SCIPtrySol(SCIP* scip, SCIP_SOL* sol, SCIP_Bool printreason, SCIP_Bool completely, SCIP_Bool checkbounds, SCIP_Bool checkintegrality, SCIP_Bool checklprows, SCIP_Bool* stored)
     SCIP_RETCODE SCIPfreeSol(SCIP* scip, SCIP_SOL** sol)
     SCIP_RETCODE SCIPprintBestSol(SCIP* scip, FILE* outfile, SCIP_Bool printzeros)
+    SCIP_RETCODE SCIPprintSol(SCIP* scip, SCIP_SOL* sol, FILE* outfile, SCIP_Bool printzeros)
     SCIP_Real SCIPgetPrimalbound(SCIP* scip)
     SCIP_Real SCIPgetGap(SCIP* scip)
     int SCIPgetDepth(SCIP* scip)
     SCIP_RETCODE SCIPaddSolFree(SCIP* scip, SCIP_SOL** sol, SCIP_Bool* stored)
     SCIP_RETCODE SCIPaddSol(SCIP* scip, SCIP_SOL* sol, SCIP_Bool* stored)
+    SCIP_RETCODE SCIPreadSol(SCIP* scip, const char* filename)
+    SCIP_RETCODE SCIPreadSolFile(SCIP* scip, const char* filename, SCIP_SOL* sol, SCIP_Bool xml, SCIP_Bool*	partial, SCIP_Bool*	error) 	
 
     # Row Methods
     SCIP_RETCODE SCIPcreateRow(SCIP* scip, SCIP_ROW** row, const char* name, int len, SCIP_COL** cols, SCIP_Real* vals,
@@ -462,6 +563,22 @@ cdef extern from "scip/scip.h":
                                    SCIP_READERDATA* readerdata)
     SCIP_READER* SCIPfindReader(SCIP* scip, const char* name)
     SCIP_READERDATA* SCIPreaderGetData(SCIP_READER* reader)
+
+    # Event handler plugin
+    SCIP_RETCODE SCIPincludeEventhdlr(SCIP* scip,
+                                      const char* name,
+                                      const char* desc,
+                                      SCIP_RETCODE (*eventcopy) (SCIP* scip, SCIP_EVENTHDLR* eventhdlr),
+                                      SCIP_RETCODE (*eventfree) (SCIP* scip, SCIP_EVENTHDLR* eventhdlr),
+                                      SCIP_RETCODE (*eventinit) (SCIP* scip, SCIP_EVENTHDLR* eventhdlr),
+                                      SCIP_RETCODE (*eventexit) (SCIP* scip, SCIP_EVENTHDLR* eventhdlr),
+                                      SCIP_RETCODE (*eventinitsol) (SCIP* scip, SCIP_EVENTHDLR* eventhdlr),
+                                      SCIP_RETCODE (*eventexitsol) (SCIP* scip, SCIP_EVENTHDLR* eventhdlr),
+                                      SCIP_RETCODE (*eventdelete) (SCIP* scip, SCIP_EVENTHDLR* eventhdlr, SCIP_EVENTDATA** eventdata),
+                                      SCIP_RETCODE (*eventexec) (SCIP* scip, SCIP_EVENTHDLR* eventhdlr, SCIP_EVENT* event, SCIP_EVENTDATA* eventdata),
+                                      SCIP_EVENTHDLRDATA* eventhdlrdata)
+    SCIP_EVENTHDLR* SCIPfindEventhdlr(SCIP* scip, const char* name)
+    SCIP_EVENTHDLRDATA* SCIPeventhdlrGetData(SCIP_EVENTHDLR* eventhdlr)
 
     # Variable pricer plugin
     SCIP_RETCODE SCIPincludePricer(SCIP* scip,
@@ -715,7 +832,14 @@ cdef extern from "scip/scip.h":
     SCIP_Bool    SCIPlpiIsPrimalFeasible(SCIP_LPI* lpi)
     SCIP_Bool    SCIPlpiIsDualFeasible(SCIP_LPI* lpi)
 
+    #re-optimization routines
+    SCIP_RETCODE SCIPfreeReoptSolve(SCIP* scip)
+    SCIP_RETCODE SCIPchgReoptObjective(SCIP* scip, SCIP_OBJSENSE objsense, SCIP_VAR** vars, SCIP_Real* coefs, int nvars)
+
     BMS_BLKMEM* SCIPblkmem(SCIP* scip)
+
+cdef extern from "scip/tree.h":
+    int SCIPnodeGetNAddedConss(SCIP_NODE* node)
 
 cdef extern from "scip/scipdefplugins.h":
     SCIP_RETCODE SCIPincludeDefaultPlugins(SCIP* scip)
